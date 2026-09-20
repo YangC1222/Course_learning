@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>高等数值分析 · 数理基础 知识图谱</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #0f1419; color: #e6e6e6; overflow: hidden; }
+  #header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: linear-gradient(90deg, #7b1f1f, #4a1212); display: flex; align-items: center; padding: 0 24px; z-index: 10; box-shadow: 0 2px 12px rgba(0,0,0,0.5); }
+  #header h1 { font-size: 20px; color: #fff; letter-spacing: 1px; }
+  #header .sub { margin-left: 16px; font-size: 13px; color: #d4a5a5; }
+  #chart { position: absolute; top: 60px; left: 0; right: 380px; bottom: 0; }
+  #panel { position: absolute; top: 60px; right: 0; width: 380px; bottom: 0; background: #1a1f2a; padding: 20px; overflow-y: auto; border-left: 1px solid #2a3140; }
+  #panel h2 { color: #ffd166; font-size: 18px; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  #panel .tag { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; margin-bottom: 12px; color: #fff; }
+  #panel .content { font-size: 14px; line-height: 1.8; color: #c9d1d9; }
+  #panel .content .formula { background: #2a3140; padding: 8px 12px; border-radius: 6px; margin: 8px 0; font-family: "Cambria Math", "Times New Roman", serif; color: #ffd166; font-size: 14px; }
+  #panel .content .note { color: #8b949e; font-size: 12px; margin-top: 8px; padding: 8px; background: #1f2530; border-left: 3px solid #ffd166; }
+  .legend { position: absolute; bottom: 20px; left: 20px; background: rgba(20,25,35,0.85); padding: 12px 16px; border-radius: 8px; font-size: 12px; z-index: 5; }
+  .legend .item { display: flex; align-items: center; margin: 4px 0; }
+  .legend .dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+</style>
+</head>
+<body>
+<div id="header">
+  <h1>高等数值分析 · 数理基础 知识图谱</h1>
+  <span class="sub">Linear Space → Metric → Norm → Inner Product → Matrix Space</span>
+</div>
+<div id="chart"></div>
+<div id="panel">
+  <h2>点击节点查看详情</h2>
+  <div class="content" id="panelContent">
+    <p>👆 在左侧图谱中点击任意节点，即可查看该知识点的定义、公式、性质与例子。</p>
+    <p style="margin-top:12px;">💡 支持拖拽节点、滚轮缩放、拖拽空白平移。</p>
+  </div>
+</div>
+<div class="legend">
+  <div class="item"><div class="dot" style="background:#ff6b6b"></div>线性空间 Linear Space</div>
+  <div class="item"><div class="dot" style="background:#4ecdc4"></div>距离空间 Metric</div>
+  <div class="item"><div class="dot" style="background:#ffd166"></div>范数 Norm</div>
+  <div class="item"><div class="dot" style="background:#95e1d3"></div>内积 Inner Product</div>
+  <div class="item"><div class="dot" style="background:#c9a7eb"></div>矩阵空间 Matrix Space</div>
+</div>
+
+<script>
+const categories = [
+  { name: '核心', itemStyle: { color: '#ffd166' } },
+  { name: '线性空间', itemStyle: { color: '#ff6b6b' } },
+  { name: '距离空间', itemStyle: { color: '#4ecdc4' } },
+  { name: '范数', itemStyle: { color: '#ffa552' } },
+  { name: '内积', itemStyle: { color: '#95e1d3' } },
+  { name: '矩阵空间', itemStyle: { color: '#c9a7eb' } }
+];
+
+const nodes = [
+  { name: '数理基础', category: 0, symbolSize: 60,
+    desc: '高等数值分析的五大数理支柱：从代数结构到分析结构，层层递进。',
+    note: '逻辑主线：线性空间（代数）→ 距离（拓扑）→ 范数（赋范）→ 内积（几何）→ 矩阵空间（应用）' },
+  { name: '线性空间', category: 1, symbolSize: 42,
+    desc: '集合 S + 数域 P（R 或 C），定义加法与数乘，满足 8 条公理。',
+    formula: '加法: S×S→S ；数乘: P×S→S\n结合律、零元、逆元、交换律\n(λ+μ)a=λa+μa；λ(a+b)=λa+λb\n(λμ)a=λ(μa)；1·a=a',
+    note: '若运算法则和数域自明，可简称 S 为线性空间。' },
+  { name: '实数集合 R', category: 1, symbolSize: 24,
+    desc: 'R 上加法与乘法构成"域"；非常数多项式在域中有根则称"代数闭域"。',
+    formula: '加法结合/零元/逆元/交换\n乘法结合/幺元/逆元/交换\n分配律：(λ+μ)a=λa+μa',
+    note: '实数公理保证 R 是完备的。' },
+  { name: '实向量空间 R^d', category: 1, symbolSize: 26,
+    desc: 'R^d = {(x₁,…,x_d)|x_k∈R}，分量加法与数乘。',
+    formula: 'x+y=(x₁+y₁,…,x_d+y_d)\nμx=(μx₁,…,μx_d)' },
+  { name: '经典例子', category: 1, symbolSize: 28,
+    desc: '常见线性空间：',
+    formula: 'R^n, C^n（数域不同）\nC[a,b]：[a,b] 上连续函数\nP_N：次数≤N 多项式\nP=∪P_N：所有多项式\nR^{N×N}：N 阶矩阵\n(R⁺,R)：x⊕y=xy, μ⊗x=x^μ' },
+  { name: '线性无关', category: 1, symbolSize: 26,
+    desc: '若存在不全为零的 a_i 使 Σa_i x_i=0，则线性相关；否则线性无关。',
+    formula: 'a₁x₁+…+a_n x_n=0  ⟺  ∃a_i≠0',
+    note: '{0} 必相关；相关组添加元素仍相关；无关组去掉元素仍无关。' },
+  { name: '基与维度', category: 1, symbolSize: 26,
+    desc: '线性无关且线性表出全体元素 → 基；元素个数 n 即维数。',
+    formula: 'x = a₁x₁+…+a_n x_n  (唯一)',
+    note: '维数是内蕴量，与基的选择无关。\nP_N 基：{1,x,…,x^N}，dim=N+1\nC[a,b]：dim=+∞（无穷维）' },
+  { name: '距离空间', category: 2, symbolSize: 42,
+    desc: '集合 M + 距离函数 d:M×M→R，满足 3 条公理。',
+    formula: '① d(x,y)≥0，d(x,y)=0 ⟺ x=y\n② d(x,y)=d(y,x)\n③ d(x,y)+d(y,z)≥d(x,z)（三角不等式）' },
+  { name: 'Cauchy 序列', category: 2, symbolSize: 24,
+    desc: '∀ε>0，∃N，当 n>N 时 d(x_n,x_{n+p})<ε（∀p∈N）。',
+    formula: 'lim_{n,m→∞} d(x_n,x_m)=0' },
+  { name: '完备性', category: 2, symbolSize: 26,
+    desc: '每个 Cauchy 序列都收敛到 M 中某点，则 M 完备。',
+    formula: '∃x∈M，使 d(x_n,x)→0',
+    note: '实数集 (R, |a-b|) 是完备的（实数公理）。' },
+  { name: '非平凡距离例子', category: 2, symbolSize: 26,
+    desc: '课本给出的 4 个典型：',
+    formula: '正实数集：d(x,y)=|log x−log y|\nHamming：d=#{k: x_k≠y_k}\n连通图：d(u,v)=最短路径边数\n单位圆：d=min_k|s−t+2kπ|' },
+  { name: '距离空间完备化', category: 2, symbolSize: 24,
+    desc: '用 Cauchy 序列的等价类构造完备化空间。',
+    formula: 'M̃ = {Cauchy 序列}\nx̃~ỹ ⟺ lim d(x_n,y_n)=0\nM̂=M̃/~  完备\nî([x],[y])=lim d(x_n,y_n)',
+    note: '嵌入映射 i(a)=[a,a,a,…]。' },
+  { name: '范数 / 赋范空间', category: 3, symbolSize: 42,
+    desc: '线性空间 S 上映射 ‖·‖:S→R，满足 3 条公理。',
+    formula: '① ‖f‖≥0，‖f‖=0 ⟺ f=0\n② ‖αf‖=|α|·‖f‖\n③ ‖f+g‖≤‖f‖+‖g‖（三角不等式）' },
+  { name: '赋范→距离', category: 3, symbolSize: 22,
+    desc: '范数自然诱导距离。',
+    formula: 'd(f,g) = ‖f−g‖',
+    note: '完备的赋范空间称为 Banach 空间（B 空间）。' },
+  { name: 'R^n 的范数', category: 3, symbolSize: 28,
+    desc: '三个经典向量范数：',
+    formula: '∞-范数：‖x‖_∞ = max|x_i|\n1-范数：‖x‖₁ = Σ|x_i|\n2-范数：‖x‖₂ = √(Σ|x_i|²)（欧氏）' },
+  { name: 'C[a,b] 的范数', category: 3, symbolSize: 28,
+    desc: '连续函数空间的三种范数：',
+    formula: '∞-范数：‖f‖_∞ = max|f(x)|\n1-范数：‖f‖₁ = ∫|f(x)|dx\n2-范数：‖f‖₂ = √(∫|f(x)|²dx)' },
+  { name: '范数等价性', category: 3, symbolSize: 26,
+    desc: '∃C₁,C₂>0：C₁‖x‖_α≤‖x‖_β≤C₂‖x‖_α。',
+    formula: '‖·‖_α 强于 ‖·‖_β：‖x‖_β≤C‖x‖_α',
+    note: '⭐ 定理：有限维线性空间中任意两个范数等价。' },
+  { name: '无穷维反例', category: 3, symbolSize: 24,
+    desc: 'C[a,b] 中 ∞-,1-,2-范数两两不等价。',
+    formula: 'f_m(x)=((x−a)/L)^m\n‖f_m‖_∞=1，‖f_m‖₁=L/(m+1)\n‖f_m‖₂=√(L/(2m+1))',
+    note: 'm→∞ 时比值趋于 0，不存在统一正下界。' },
+  { name: '完备性差异', category: 3, symbolSize: 24,
+    desc: '同一空间不同范数下完备性不同。',
+    formula: '(C[a,b],‖·‖_∞)  完备 ✅\n(C[a,b],‖·‖₁)    不完备 ❌\n(C[a,b],‖·‖₂)    不完备 ❌',
+    note: 'Cauchy 序列可逼近阶梯函数，极限不在 C[a,b] 中。\nR、任意有限维赋范空间都完备。' },
+  { name: '内积', category: 4, symbolSize: 42,
+    desc: '线性空间 S 上映射 (·,·):S×S→P，满足 3 条公理。',
+    formula: '① (x,x)≥0，(x,x)=0 ⟺ x=0\n② (x,y)=overline{(y,x)}（共轭对称）\n③ (ax+by,z)=a(x,z)+b(y,z)（对第一变元线性）',
+    note: 'x 与 y 正交 ⟺ (x,y)=0。' },
+  { name: '诱导范数', category: 4, symbolSize: 22,
+    desc: '内积自然诱导一个范数。',
+    formula: '‖x‖ = √(x,x)',
+    note: '并非所有范数都由内积诱导（需满足平行四边形法则）。' },
+  { name: 'Cauchy-Schwarz 不等式', category: 4, symbolSize: 28,
+    desc: '内积空间最核心不等式。',
+    formula: '|(x,y)| ≤ ‖x‖·‖y‖',
+    note: '证明：令 α=(x,y)/(y,y)，则 0≤(x−αy, x−αy)\n= (x,x)−|(x,y)|²/(y,y)。\n由此推出三角不等式。' },
+  { name: '内积实例', category: 4, symbolSize: 26,
+    desc: '三种标准内积：',
+    formula: 'R^n：(x,y)=Σ x_i y_i\nC[a,b]实：(f,g)=∫f(x)g(x)dx\nC[a,b]复：(f,g)=∫f(x)ḡ(x)dx' },
+  { name: 'Gram 矩阵判据', category: 4, symbolSize: 24,
+    desc: 'x₁,…,x_n 线性无关 ⟺ Gram 矩阵满秩。',
+    formula: 'G_n = [(x_i,x_j)]_{n×n}\ndet G_n ≠ 0' },
+  { name: '坐标计算', category: 4, symbolSize: 24,
+    desc: '在基 {x_i} 下求 x=Σa_i x_i 的系数。',
+    formula: '(x,x_i)=Σ a_j (x_j,x_i)\n即向量形式：[(x,x_i)] = [a_i]·G_n',
+    note: '⭐ 若 {x_i} 正交（(x_i,x_j)=0, i≠j）：\n      a_i = (x,x_i)/(x_i,x_i)' },
+  { name: 'Schmidt 正交化', category: 4, symbolSize: 28,
+    desc: '由线性无关组构造正交组。',
+    formula: 'y_i = x_i − Σ_{j<i} (x_i,y_j)/(y_j,y_j) · y_j',
+    note: 'Φ_k=span{x₁,…,x_k}=span{y₁,…,y_k}\n(y_i,y_j)=0, i≠j；Φ_{k−1}⊂Φ_k, y_k⊥Φ_{k−1}' },
+  { name: '带权内积', category: 4, symbolSize: 24,
+    desc: '权函数 ρ(x)>0 几乎处处为正。',
+    formula: '(f,g)=∫_a^b ρ(x) f(x) g(x) dx',
+    note: '例：ρ=1（[-1,1]）；ρ=1/√(1−x²)（[-1,1]）' },
+  { name: '正交多项式', category: 4, symbolSize: 26,
+    desc: '对 {1,x,…,x^n} 做带权 Schmidt 正交化得到 {φ_i}。',
+    formula: 'deg φ_i = i\n(φ_i,φ_j)=0, i≠j',
+    note: '性质：φ_n 为实系数多项式；\nφ_n 在 (a,b) 内恰有 n 个单实根。' },
+  { name: 'Legendre 多项式', category: 4, symbolSize: 28,
+    desc: '权 ρ=1，区间 [-1,1]。',
+    formula: 'P_n(x) = (1/2ⁿn!) · dⁿ/dxⁿ[(x²−1)ⁿ]\n(P_n,P_m)=0 (n≠m)；(P_n,P_n)=2/(2n+1)\n递推：(n+1)P_{n+1}=(2n+1)xP_n−nP_{n−1}\n奇偶：P_n(−x)=(−1)ⁿP_n(x)',
+    note: '首项系数：(2n)!/[2ⁿ(n!)²]；P₀=1, P₁=x。' },
+  { name: 'Chebyshev 多项式', category: 4, symbolSize: 28,
+    desc: '权 ρ=1/√(1−x²)，区间 [-1,1]。',
+    formula: 'T_n(x)=cos(n·arccos x),  x∈[-1,1]\n(T₀,T₀)=π；(T_n,T_n)=π/2 (n≥1)\n递推：T_{n+1}=2xT_n−T_{n−1}\n单根：x_k=cos[(2k−1)π/(2n)]\n交替点：y_k=cos(kπ/n)，T_n(y_k)=(−1)^k',
+    note: '首项系数 2^{n−1}；|x|≥1 时\nT_n(x)=½[(x+√(x²−1))ⁿ+(x−√(x²−1))ⁿ]。' },
+  { name: '矩阵空间', category: 5, symbolSize: 42,
+    desc: 'C^{n×n} 是线性空间，且定义乘法后成为"结合代数"。',
+    formula: '(a_ij)(b_ij)=(c_ij), c_ij=Σ_k a_ik b_kj',
+    note: '分配律：A(B+C)=AB+AC；(A+B)C=AC+BC\n结合律：A(BC)=(AB)C' },
+  { name: '矩阵范数', category: 5, symbolSize: 28,
+    desc: '满足次乘性的向量范数称为矩阵范数。',
+    formula: '‖AB‖ ≤ ‖A‖·‖B‖',
+    note: '这是矩阵范数与普通向量范数的本质区别。' },
+  { name: 'Frobenius 范数', category: 5, symbolSize: 28,
+    desc: '最常用的矩阵范数之一。',
+    formula: '‖A‖_F = √(Σ_i Σ_j |a_ij|²)\n‖I‖_F = √n',
+    note: '次乘性证明用 Cauchy-Schwarz：\n‖AB‖_F ≤ ‖A‖_F·‖B‖_F。' },
+  { name: '相容性', category: 5, symbolSize: 26,
+    desc: '矩阵范数 ‖·‖_M 与向量范数 ‖·‖_V 相容。',
+    formula: '‖Ax‖_V ≤ ‖A‖_M · ‖x‖_V',
+    note: '例：Frobenius 范数 ‖·‖_F 与向量 2-范数 ‖·‖₂ 相容。' }
+];
+
+const links = [
+  { source: '数理基础', target: '线性空间' },
+  { source: '数理基础', target: '距离空间' },
+  { source: '数理基础', target: '范数 / 赋范空间' },
+  { source: '数理基础', target: '内积' },
+  { source: '数理基础', target: '矩阵空间' },
+  { source: '线性空间', target: '实数集合 R' },
+  { source: '线性空间', target: '实向量空间 R^d' },
+  { source: '线性空间', target: '经典例子' },
+  { source: '线性空间', target: '线性无关' },
+  { source: '线性空间', target: '基与维度' },
+  { source: '线性无关', target: '基与维度' },
+  { source: '距离空间', target: 'Cauchy 序列' },
+  { source: '距离空间', target: '非平凡距离例子' },
+  { source: 'Cauchy 序列', target: '完备性' },
+  { source: '完备性', target: '距离空间完备化' },
+  { source: '范数 / 赋范空间', target: '赋范→距离' },
+  { source: '范数 / 赋范空间', target: 'R^n 的范数' },
+  { source: '范数 / 赋范空间', target: 'C[a,b] 的范数' },
+  { source: '范数 / 赋范空间', target: '范数等价性' },
+  { source: 'C[a,b] 的范数', target: '无穷维反例' },
+  { source: '范数等价性', target: '完备性差异' },
+  { source: '赋范→距离', target: '完备性差异' },
+  { source: '内积', target: '诱导范数' },
+  { source: '内积', target: 'Cauchy-Schwarz 不等式' },
+  { source: '内积', target: '内积实例' },
+  { source: '内积', target: 'Gram 矩阵判据' },
+  { source: 'Gram 矩阵判据', target: '坐标计算' },
+  { source: '坐标计算', target: 'Schmidt 正交化' },
+  { source: 'Schmidt 正交化', target: '带权内积' },
+  { source: '带权内积', target: '正交多项式' },
+  { source: '正交多项式', target: 'Legendre 多项式' },
+  { source: '正交多项式', target: 'Chebyshev 多项式' },
+  { source: '矩阵空间', target: '矩阵范数' },
+  { source: '矩阵范数', target: 'Frobenius 范数' },
+  { source: '矩阵范数', target: '相容性' },
+  { source: 'Frobenius 范数', target: '相容性' },
+  { source: '赋范→距离', target: '距离空间' },
+  { source: '诱导范数', target: '范数 / 赋范空间' },
+  { source: 'Frobenius 范数', target: 'R^n 的范数' }
+];
+
+const chartDom = document.getElementById('chart');
+const myChart = echarts.init(chartDom, 'dark');
+const option = {
+  backgroundColor: 'transparent',
+  tooltip: { formatter: p => p.data.name },
+  series: [{
+    type: 'graph',
+    layout: 'force',
+    animation: false,
+    draggable: true,
+    roam: true,
+    label: { show: true, position: 'inside', formatter: '{b}', fontSize: 11, color: '#fff', fontWeight: 'bold' },
+    lineStyle: { color: '#555', width: 1.2, curveness: 0.1 },
+    emphasis: { focus: 'adjacency', lineStyle: { width: 3, color: '#ffd166' } },
+    force: { repulsion: 380, edgeLength: [80, 160], gravity: 0.08 },
+    categories: categories,
+    data: nodes.map(n => ({ name: n.name, category: n.category, symbolSize: n.symbolSize, label: { show: n.symbolSize >= 24 } })),
+    links: links
+  }]
+};
+myChart.setOption(option);
+myChart.on('click', function(params) {
+  if (params.dataType !== 'node') return;
+  const node = nodes.find(n => n.name === params.data.name);
+  if (!node) return;
+  const cat = categories[node.category];
+  let html = `<div class="tag" style="background:${cat.itemStyle.color}">${cat.name}</div>`;
+  html += `<h2 style="color:${cat.itemStyle.color}">${node.name}</h2>`;
+  html += `<div class="content">`;
+  html += `<p>${node.desc}</p>`;
+  if (node.formula) html += `<div class="formula">${node.formula.replace(/\n/g, '<br>')}</div>`;
+  if (node.note) html += `<div class="note">💡 ${node.note.replace(/\n/g, '<br>')}</div>`;
+  html += `</div>`;
+  document.getElementById('panelContent').innerHTML = html;
+});
+window.addEventListener('resize', () => myChart.resize());
+</script>
+</body>
+</html>
